@@ -1,16 +1,20 @@
-<script>
+<script setup>
 import { onMounted, ref } from 'vue';
 import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
 const map = ref();
-const mapContainer = ref()
+const mapContainer = ref();
 
 onMounted(() => {
-  var map = L.map(mapContainer.value).setView([51.505, -0.09], 13);
+  map.value = L.map(mapContainer.value).setView([51.505, -0.09], 13);
+
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 }).addTo(map.value);
 })
+
 </script>
 
 <style scoped>
@@ -37,12 +41,8 @@ header {
 }
 </style>
 
-<template>
-  
-    <div ref="mapContainer" style="width: 400px; height: 400px;"></div>
- 
-  
-  
+<template>  
+    <!-- <div ref="mapContainer" style="width: 500px; height: 500px;"></div> -->
     <div class="wrapper">
       <!-- Title -->
       <header>
@@ -53,7 +53,7 @@ header {
         <v-stepper :items="['Map', 'Description', 'Rating', 'Visit freq', 'Activities', 'Priorities', 'Donate']">
       <template v-slot:item.1>
         <v-card title="Map" flat>
-          <!-- <l-map ref="myMap"> </l-map> -->
+          <div ref="mapContainer" style="width: 500px; height: 500px;"></div>
         </v-card>
       </template>
   
