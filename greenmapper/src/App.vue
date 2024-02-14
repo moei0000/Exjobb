@@ -1,24 +1,17 @@
 <script setup>
 import { onMounted, ref } from 'vue';
-import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import Description from './Description.vue';
 import Rating from './Rating.vue';
 import VisitFreq from './VisitFreq.vue';
 import Activites from './Activities.vue';
 import Priorities from './Priorities.vue';
+import LeafletMap from './Map.vue';
+
+
 
 const map = ref();
 const mapContainer = ref();
-
-// onMounted(() => {
-//   map.value = L.map(mapContainer.value).setView([51.505, -0.09], 13);
-
-//   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-//     maxZoom: 19,
-//     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-// }).addTo(map.value);
-// })
 
 </script>
 
@@ -47,7 +40,6 @@ header {
 </style>
 
 <template> 
-    <!-- <div ref="mapContainer" style="width: 500px; height: 500px;"></div> -->
     <div class="wrapper">
       <!-- Title -->
       <header>
@@ -57,27 +49,27 @@ header {
       <div class="stepper">
         <v-stepper color="#008918" prev-text="Back"  :items="['Map', 'Description', 'Rating', 'Visit freq', 'Activities', 'Priorities', 'Donate']">
       <template v-slot:item.1>
-        <v-card title="Map" flat>...</v-card>
+        <LeafletMap :mapComtainer="mapContainer" />
       </template>
   
       <template v-slot:item.2>
-        <description />
+        <Description />
       </template>
   
       <template v-slot:item.3>
-        <rating />
+        <Rating />
       </template>
   
       <template v-slot:item.4>
-        <visit-freq />
+        <VisitFreq />
       </template>
   
       <template v-slot:item.5>
-        <activites />
+        <Activites />
       </template>
   
       <template v-slot:item.6>
-        <priorities />
+        <Priorities />
       </template>
   
       <template v-slot:item.7>
