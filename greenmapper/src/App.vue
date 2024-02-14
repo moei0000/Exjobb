@@ -2,18 +2,23 @@
 import { onMounted, ref } from 'vue';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import Description from './Description.vue';
+import Rating from './Rating.vue';
+import VisitFreq from './VisitFreq.vue';
+import Activites from './Activities.vue';
+import Priorities from './Priorities.vue';
 
 const map = ref();
 const mapContainer = ref();
 
-onMounted(() => {
-  map.value = L.map(mapContainer.value).setView([51.505, -0.09], 13);
+// onMounted(() => {
+//   map.value = L.map(mapContainer.value).setView([51.505, -0.09], 13);
 
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-}).addTo(map.value);
-})
+//   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+//     maxZoom: 19,
+//     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+// }).addTo(map.value);
+// })
 
 </script>
 
@@ -41,40 +46,38 @@ header {
 }
 </style>
 
-<template>  
+<template> 
     <!-- <div ref="mapContainer" style="width: 500px; height: 500px;"></div> -->
     <div class="wrapper">
       <!-- Title -->
       <header>
         Greenmapper   <img id="icon" src="./assets/img/pin.png" />
       </header>
-      <!-- Stepper -->
+      
       <div class="stepper">
-        <v-stepper :items="['Map', 'Description', 'Rating', 'Visit freq', 'Activities', 'Priorities', 'Donate']">
+        <v-stepper color="#008918" prev-text="Back"  :items="['Map', 'Description', 'Rating', 'Visit freq', 'Activities', 'Priorities', 'Donate']">
       <template v-slot:item.1>
-        <v-card title="Map" flat>
-          <div ref="mapContainer" style="width: 500px; height: 500px;"></div>
-        </v-card>
+        <v-card title="Map" flat>...</v-card>
       </template>
   
       <template v-slot:item.2>
-        <v-card title="Description" flat>...</v-card>
+        <description />
       </template>
   
       <template v-slot:item.3>
-        <v-card title="Rating" flat>...</v-card>
+        <rating />
       </template>
   
       <template v-slot:item.4>
-        <v-card title="Visit freq" flat>...</v-card>
+        <visit-freq />
       </template>
   
       <template v-slot:item.5>
-        <v-card title="Activites" flat>...</v-card>
+        <activites />
       </template>
   
       <template v-slot:item.6>
-        <v-card title="Priorities" flat>...</v-card>
+        <priorities />
       </template>
   
       <template v-slot:item.7>
@@ -83,8 +86,5 @@ header {
   
     </v-stepper>
       </div>
-      <main>
-        <!-- Map -->
-      </main>
     </div>
   </template>
