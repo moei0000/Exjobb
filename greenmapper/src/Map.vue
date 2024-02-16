@@ -1,23 +1,61 @@
-<script setup>
-import { onMounted, ref } from 'vue';
-import L from 'leaflet';
+<script >
+import { latLng } from "leaflet";
+import { LMap, LTileLayer, LMarker, LPopup, LTooltip } from "@vue-leaflet/vue-leaflet";
 
-const map = ref();
-const mapContainer = ref('mapContainer');
-
-setTimeout(()=> {
-onMounted(() => {
-    map.value = L.map(mapContainer).setView([51.505, -0.09], 13);
-
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-}).addTo(map.value);
-});
-}, 1000);
+export default {
+  name: "LeafletMap",
+  components: {
+    LMap,
+    LTileLayer,
+    LMarker,
+    LPopup,
+    LTooltip,
+  },
+  data() {
+    return {
+      zoom: 15,
+      center: latLng(58.283, 12.293),
+      url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      attribution:
+        '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+      showMap: true,
+      mapOptions: {
+        zoomSnap: 0.5
+      }
+    };
+  },
+  methods: {
+    zoomUpdate(zoom) {
+      this.currentZoom = zoom;
+    },
+    centerUpdate(center) {
+      this.currentCenter = center;
+    },
+  }
+};
 
 </script>
 
+<style scoped>
+.map {
+  height: 500px;
+  width: 100%;
+}
+</style>
+
 <template>
-    <div ref="mapContainer" style="width: 500px; height: 500px;"></div>
+    <div class="map">
+          <l-map
+            :zoom="zoom"
+            :center="center"
+            :options="mapOptions"
+            @update:center="centerUpdate"
+            @update:zoom="zoomUpdate"
+          >
+          <l-tile-layer
+            :url="url"
+            :attribution="attribution"
+          />
+          </l-map>
+        </div>
 </template>

@@ -1,6 +1,4 @@
 <script setup>
-import { onMounted, ref } from 'vue';
-import 'leaflet/dist/leaflet.css';
 import Description from './Description.vue';
 import Rating from './Rating.vue';
 import VisitFreq from './VisitFreq.vue';
@@ -8,10 +6,9 @@ import Activites from './Activities.vue';
 import Priorities from './Priorities.vue';
 import LeafletMap from './Map.vue';
 
+import { latLng } from "leaflet";
+import { LMap, LTileLayer, LMarker, LPopup, LTooltip } from "@vue-leaflet/vue-leaflet";
 
-
-const map = ref();
-const mapContainer = ref();
 
 </script>
 
@@ -39,17 +36,33 @@ header {
 }
 </style>
 
+
 <template> 
-    <div class="wrapper">
-      <!-- Title -->
-      <header>
-        Greenmapper   <img id="icon" src="./assets/img/pin.png" />
-      </header>
-      
-      <div class="stepper">
+    <l-map
+    v-if="showMap"
+    :zoom="zoom"
+    :center="center"
+    style="height: 80%"
+    @update:center="centerUpdate"
+    @update:zoom="zoomUpdate"
+  >
+    <l-tile-layer
+      :url="url"
+      :attribution="attribution"
+    />
+  </l-map>
+  <div class="wrapper">
+    <!-- Title -->
+    <header>
+      Greenmapper   <img id="icon" src="./assets/img/pin.png" />
+    </header>
+    
+    <div class="stepper">
         <v-stepper color="#008918" prev-text="Back"  :items="['Map', 'Description', 'Rating', 'Visit freq', 'Activities', 'Priorities', 'Donate']">
       <template v-slot:item.1>
-        <LeafletMap :mapComtainer="mapContainer" />
+        <div class="map">
+          <LeafletMap />
+        </div>
       </template>
   
       <template v-slot:item.2>
@@ -77,6 +90,6 @@ header {
       </template>
   
     </v-stepper>
-      </div>
     </div>
-  </template>
+  </div>
+</template>

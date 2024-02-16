@@ -14,7 +14,9 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.5.0",
+    "@vue-leaflet/vue-leaflet": "^0.10.1",
     "cross-env": "^7.0.3",
+    "leaflet": "^1.9.4",
     "sass": "^1.69.0",
     "unplugin-fonts": "^1.1.0",
     "unplugin-vue-components": "^0.26.0",
