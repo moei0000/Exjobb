@@ -7,6 +7,7 @@ import VisitFreq from './VisitFreq.vue';
 import Activites from './Activities.vue';
 import Priorities from './Priorities.vue';
 import LeafletMap from './Map.vue';
+import Donate from './Donate.vue';
 
 
 
@@ -49,7 +50,7 @@ header {
       <div class="stepper">
         <v-stepper color="#008918" prev-text="Back"  :items="['Map', 'Description', 'Rating', 'Visit freq', 'Activities', 'Priorities', 'Donate']">
       <template v-slot:item.1>
-        <LeafletMap :mapComtainer="mapContainer" />
+        
       </template>
   
       <template v-slot:item.2>
@@ -73,7 +74,7 @@ header {
       </template>
   
       <template v-slot:item.7>
-        <v-card title="Donate" flat>...</v-card>
+        <Donate />
       </template>
   
     </v-stepper>
