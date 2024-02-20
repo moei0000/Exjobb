@@ -7,10 +7,6 @@ import Priorities from './Priorities.vue';
 import LeafletMap from './Map.vue';
 import Donate from './Donate.vue';
 
-import { latLng } from "leaflet";
-import { LMap, LTileLayer, LMarker, LPopup, LTooltip } from "@vue-leaflet/vue-leaflet";
-
-
 </script>
 
 <style scoped>
@@ -39,19 +35,6 @@ header {
 
 
 <template> 
-    <l-map
-    v-if="showMap"
-    :zoom="zoom"
-    :center="center"
-    style="height: 80%"
-    @update:center="centerUpdate"
-    @update:zoom="zoomUpdate"
-  >
-    <l-tile-layer
-      :url="url"
-      :attribution="attribution"
-    />
-  </l-map>
   <div class="wrapper">
     <!-- Title -->
     <header>
