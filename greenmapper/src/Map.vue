@@ -1,61 +1,43 @@
-<script >
-import { latLng } from "leaflet";
-import { LMap, LTileLayer, LMarker, LPopup, LTooltip } from "@vue-leaflet/vue-leaflet";
+<script setup>
+import 'leaflet-draw';
+import 'leaflet/dist/leaflet.css';
+import { onMounted } from "vue";
 
-export default {
-  name: "LeafletMap",
-  components: {
-    LMap,
-    LTileLayer,
-    LMarker,
-    LPopup,
-    LTooltip,
-  },
-  data() {
-    return {
-      zoom: 15,
-      center: latLng(58.283, 12.293),
-      url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      attribution:
-        '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
-      showMap: true,
-      mapOptions: {
-        zoomSnap: 0.5
-      }
-    };
-  },
-  methods: {
-    zoomUpdate(zoom) {
-      this.currentZoom = zoom;
-    },
-    centerUpdate(center) {
-      this.currentCenter = center;
-    },
-  }
-};
+var map;
+
+onMounted(() => {
+  // Renders leaflet correctly when refreshing page
+  setTimeout(function () {
+    window.dispatchEvent(new Event("resize"));
+  }, 300);
+
+  // Create map
+  map = L.map('map').setView([58.283, 12.293 ], 13);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  }).addTo(map);
+
+  // FeatureGroup is to store editable layers
+  var drawnItems = new L.FeatureGroup();
+     map.addLayer(drawnItems);
+     var drawControl = new L.Control.Draw({
+         edit: {
+             featureGroup: drawnItems
+         }
+     });
+     map.addControl(drawControl);
+});
 
 </script>
 
 <style scoped>
-.map {
-  height: 500px;
+#map {
+  height: 600px;
   width: 100%;
 }
 </style>
 
 <template>
-    <div class="map">
-          <l-map
-            :zoom="zoom"
-            :center="center"
-            :options="mapOptions"
-            @update:center="centerUpdate"
-            @update:zoom="zoomUpdate"
-          >
-          <l-tile-layer
-            :url="url"
-            :attribution="attribution"
-          />
-          </l-map>
-        </div>
+  <div id="map"></div>
 </template>
