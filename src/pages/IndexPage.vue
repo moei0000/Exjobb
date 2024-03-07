@@ -19,7 +19,7 @@
           prefix="1"
           :done="step > 1"
         >
-          <!-- <LeafletMap /> -->
+          <LeafletMap />
           hej
         </q-step>
   
@@ -29,7 +29,8 @@
           prefix="2"
           :done="step > 2"
         >
-          <!-- <Description /> -->
+          <MapDescription />
+          
         </q-step>
   
         <q-step
@@ -38,7 +39,7 @@
           prefix="3"
           :done="step > 3"
         >
-          <!-- <Rating /> -->
+          <MapRating />
         </q-step>
   
         <q-step
@@ -47,7 +48,7 @@
           prefix="4"
           :done="step > 4"
         >
-          <!-- <VisitFreq /> -->
+          <MapVisitFreq />
         </q-step>
   
         <q-step
@@ -56,7 +57,7 @@
           prefix="5"
           :done="step > 5"
         >
-          <!-- <Activities /> -->
+          <MapActivities />
         </q-step>
   
         <q-step
@@ -65,7 +66,7 @@
           prefix="6"
           :done="step > 6"
         >
-          <!-- <Priorities /> -->
+          <MapPriorities />
         </q-step>
   
         <q-step
@@ -74,7 +75,7 @@
           prefix="7"
           :done="step > 7"
         >
-          <!-- <Donate /> -->
+          <MapDonate />
         </q-step>
     <template v-slot:navigation>
       <q-stepper-navigation>
@@ -93,8 +94,24 @@
 
 <script>
 import { ref } from 'vue'
+import LeafletMap from './LeafletMap.vue';
+import MapDescription from './MapDescription.vue';
+import MapRating from './MapRating.vue';
+import MapVisitFreq from './MapVisitFreq.vue';
+import MapActivities from './MapActivities.vue';
+import MapPriorities from './MapPriorities.vue';
+import MapDonate from './MapDonate.vue';
 
 export default {
+  components: {
+    LeafletMap,
+    MapDescription,
+    MapRating,
+    MapVisitFreq,
+    MapActivities,
+    MapPriorities,
+    MapDonate
+  },
   setup () {
     return {
       step: ref(1)

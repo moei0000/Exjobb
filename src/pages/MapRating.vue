@@ -4,12 +4,11 @@
     <b>(Score: 1 = bad, 6 = average, 10 = perfect)</b>
 
     <p></p>
-    <v-rating
-        hover
-        :length="10"
-        :size="32"
-        :model-value="0"
-        active-color="primary"
+    <q-rating
+        v-model="score"
+        size="24px"
+        :max="10"
+        color="primary"
     />
 </template>
 
@@ -19,3 +18,7 @@ h1 {
     font-size: 13pt;
 }
 </style>
+
+<script setup>
+    const score = 0;
+</script>

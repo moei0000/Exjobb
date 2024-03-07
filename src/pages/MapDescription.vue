@@ -2,10 +2,15 @@
     <h1>Describe your area</h1>
 
     Provide a title that represents your area
-    <v-text-field label="Title"></v-text-field>
+    <q-input v-model="title" label="Title" filled />
 
     State in your own words what makes this particular area attractive, valuable or important to you
-    <v-textarea label="Description"></v-textarea>
+    <q-input
+      v-model="text"
+      label="Description"
+      filled
+      type="textarea"
+    />
 </template>
 
 <style>
@@ -14,3 +19,8 @@ h1 {
     font-size: 13pt;
 }
 </style>
+
+<script setup> 
+    const title = "";
+    const text = "";
+</script>
