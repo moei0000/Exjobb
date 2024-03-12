@@ -5,7 +5,7 @@
 
     <p></p>
     <q-rating
-        v-model="score"
+        v-model="rating"
         size="24px"
         :max="10"
         color="primary"
@@ -20,5 +20,5 @@ h1 {
 </style>
 
 <script setup>
-    const score = 0;
+    const rating = 0;
 </script>

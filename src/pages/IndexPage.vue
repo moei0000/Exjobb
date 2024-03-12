@@ -6,7 +6,6 @@
     </header>
     
     <div class="stepper">
-      
       <q-stepper 
         v-model="step"
         ref="stepper"
@@ -19,8 +18,8 @@
           prefix="1"
           :done="step > 1"
         >
-          <LeafletMap />
-          hej
+          <LeafletMap v-model="polygon"/>
+          Hej{{ polygon }}
         </q-step>
   
         <q-step
@@ -102,6 +101,9 @@ import MapActivities from './MapActivities.vue';
 import MapPriorities from './MapPriorities.vue';
 import MapDonate from './MapDonate.vue';
 
+// All data to releated to a polygon to be sent to the db
+const polygon = 0;
+
 export default {
   components: {
     LeafletMap,
@@ -118,4 +120,5 @@ export default {
     }
   }
 }
+
 </script>

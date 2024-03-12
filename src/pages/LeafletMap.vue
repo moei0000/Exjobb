@@ -4,6 +4,8 @@ import 'leaflet/dist/leaflet.css';
 import { onMounted } from "vue";
 import axios from 'axios';
 
+const model = defineModel();
+
 var map;
 var homeMarker;
 
@@ -71,7 +73,7 @@ onMounted(() => {
         properties: {},
         type: "Feature",
         geometry: {
-          coordinates: e.layerType == "marker" ? e.layer._latlng : e.layer._latlngs,
+          coordinates: e.layerType == "marker" ? [e.layer._latlng.lat, e.layer._latlng.lng] : e.layer._latlngs,
           type: e.layerType == "marker" ? "Point" : "Polygon"
         }
       }
@@ -101,8 +103,10 @@ onMounted(() => {
     }
 
     // If adding polygon
-    if(geoJSON.features[0].geometry.type == "polygon") {
-
+    if(geoJSON.features[0].geometry.type == "Polygon") {
+      // props.polygonData.latlngs = geoJSON.features[0].geometry.coordinates;
+      console.log('update leafletmap');
+      model.value = 3;
     }
 
 
@@ -119,5 +123,6 @@ onMounted(() => {
 </style>
 
 <template>
+  <div>parent bound v-model is: {{ model }}</div>
   <div id="map"></div>
 </template>
