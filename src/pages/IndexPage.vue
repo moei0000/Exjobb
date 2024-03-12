@@ -4,7 +4,8 @@
     <header>
        <h1 style="font-size: 29px; color: green;">Greenmapper</h1>
     </header>
-    
+    {{ descTitle }}
+    {{ descText }}
     <div class="stepper">
       <q-stepper 
         v-model="step"
@@ -18,8 +19,7 @@
           prefix="1"
           :done="step > 1"
         >
-          <LeafletMap v-model="polygon"/>
-          Hej{{ polygon }}
+          <LeafletMap v-model:polygon="polygon"/>
         </q-step>
   
         <q-step
@@ -28,8 +28,7 @@
           prefix="2"
           :done="step > 2"
         >
-          <MapDescription />
-          
+          <MapDescription v-model:descTitle="descTitle" v-model:descText="descText" />
         </q-step>
   
         <q-step
@@ -101,9 +100,6 @@ import MapActivities from './MapActivities.vue';
 import MapPriorities from './MapPriorities.vue';
 import MapDonate from './MapDonate.vue';
 
-// All data to releated to a polygon to be sent to the db
-const polygon = 0;
-
 export default {
   components: {
     LeafletMap,
@@ -116,7 +112,9 @@ export default {
   },
   setup () {
     return {
-      step: ref(1)
+      step: ref(1),
+      descTitle: ref(''),
+      descText: ref(''),
     }
   }
 }
