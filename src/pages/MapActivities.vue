@@ -1,16 +1,10 @@
 <script>
-import { ref, watch } from "vue";
+import { ref } from "vue";
 
 export default {
   emits: ["update:activitiesRef"],
   setup(props, { emit }) {
     const activities = ref(Array(8).fill(false));
-
-    // Emitting the updated value of activitiesRef whenever it changes
-    watch(activities, (newValue) => {
-      console.log("Activities changed, emitting event");
-      emit("update:activitiesRef", newValue);
-    });
 
     const options = [
       {
@@ -76,7 +70,18 @@ export default {
           >
         </q-item-section>
         <q-item-section avatar>
-          <q-toggle color="blue" v-model="activities[i]" :val="o.value" />
+          <q-toggle
+            color="blue"
+            v-model="activities[i]"
+            :val="o.value"
+            @update:model-value="
+              (newValue) => {
+                activities[i] = newValue;
+
+                $emit('update:activitiesRef', activities);
+              }
+            "
+          />
         </q-item-section>
       </q-item>
     </template>

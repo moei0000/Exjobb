@@ -10,23 +10,6 @@ var map;
 var homeMarker;
 
 onMounted(() => {
-  // var exampleGeoJSON = {
-  //   "type": "FeatureCollection",
-  //   "features": [
-  //     {
-  //       "properties": {},
-  //       "type": "Feature",
-  //       "geometry": {
-  //         "coordinates": [
-  //           36.8198475311531,
-  //           -1.2952871483350066
-  //         ],
-  //         "type": "Point"
-  //       }
-  //     }
-  //   ]
-  // }
-
   // Renders leaflet correctly when refreshing page
   setTimeout(function () {
     window.dispatchEvent(new Event("resize"));
@@ -83,17 +66,6 @@ onMounted(() => {
       homeMarker = e.layer;
       map.addLayer(homeMarker);
       L.geoJSON(geoJSON).addTo(map);
-
-      axios
-        .post("http://localhost:3001/sethome", {
-          home: e.layer._latlng,
-        })
-        .then(function (response) {
-          console.log(response);
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
     }
 
     // If adding polygon
