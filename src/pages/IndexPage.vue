@@ -59,7 +59,7 @@
         <template v-slot:navigation>
           <q-stepper-navigation>
             <q-btn
-              @click="$refs.stepper.next()"
+              @click="step === 7 ? finish : $refs.stepper.next()"
               color="primary"
               :label="step === 7 ? 'Finish' : 'Next'"
             />
@@ -80,6 +80,7 @@
 
 <script>
 import { ref } from "vue";
+import axios from "axios";
 import LeafletMap from "./LeafletMap.vue";
 import MapDescription from "./MapDescription.vue";
 import MapRating from "./MapRating.vue";
@@ -113,6 +114,9 @@ export default {
       mapActivities.value = newValue;
     };
 
+    // When stepper is finished
+    function finish(event) {}
+
     return {
       step,
       leafletPolygon,
@@ -122,26 +126,12 @@ export default {
       visitFreq,
       mapActivities,
       updateMapActivities,
+      finish,
       mapPriorities,
       donateAmount,
     };
   },
 };
-
-function finish() {
-  console.log("submit");
-}
 </script>
 
 <style></style>
-
-<!-- axios
-.post("http://localhost:3001/sethome", {
-  home: e.layer._latlng,
-})
-.then(function (response) {
-  console.log(response);
-})
-.catch(function (error) {
-  console.log(error);
-}); -->

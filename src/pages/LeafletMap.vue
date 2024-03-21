@@ -3,6 +3,7 @@ import "leaflet-draw";
 import "leaflet/dist/leaflet.css";
 import { onMounted } from "vue";
 import axios from "axios";
+import MapPriorities from "./MapPriorities.vue";
 
 const leafletPolygon = defineModel("leafletPolygon");
 
@@ -26,11 +27,10 @@ onMounted(() => {
   axios
     .get("http://localhost:3001/gethome")
     .then(function (response) {
-      console.log(response.data);
-
+      console.log(response.data[0].location.coordinates);
       homeMarker = L.marker([
-        response.data[0].home.lat,
-        response.data[0].home.lng,
+        response.data[0].location.coordinates[1],
+        response.data[0].location.coordinates[0],
       ]).addTo(map);
     })
     .catch(function (error) {
@@ -66,12 +66,36 @@ onMounted(() => {
       homeMarker = e.layer;
       map.addLayer(homeMarker);
       L.geoJSON(geoJSON).addTo(map);
+
+      console.log(geoJSON.geometry.coordinates);
+      axios
+        .post("http://localhost:3001/sethome", geoJSON.geometry.coordinates)
+        .then(function (response) {})
+        .catch(function (error) {
+          console.log(error);
+        });
     }
 
     // If adding polygon
     if (geoJSON.geometry.type == "Polygon") {
-      console.log("update leafletmap");
       leafletPolygon.value = geoJSON;
+      console.log(leafletPolygon.value);
+
+      axios
+        .get("http://localhost:3001/checkpolygon", {
+          params: {
+            polygon: JSON.stringify(geoJSON.geometry.coordinates),
+          },
+        })
+        .then(function (response) {
+          console.log(response.data);
+          L.geoJSON(geoJSON, {
+            style: { color: response.data == true ? "red" : "green" },
+          }).addTo(map);
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
     }
   });
 });
@@ -85,6 +109,5 @@ onMounted(() => {
 </style>
 
 <template>
-  <div>parent bound v-model is: {{ model }}</div>
   <div id="map"></div>
 </template>
