@@ -1,5 +1,5 @@
 <script setup>
-import "leaflet-draw";
+import "../../leaflet.draw";
 import "leaflet/dist/leaflet.css";
 import { onMounted } from "vue";
 import axios from "axios";
