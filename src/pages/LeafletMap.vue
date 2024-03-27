@@ -25,18 +25,47 @@ onMounted(() => {
   // test watermark
   L.control.watermark({ position: "bottomleft" }).addTo(map);
   // Raster image overlay
-  let latLngBounds = L.latLngBounds([
-    [58.28, 12.289],
-    [58.3, 12.309],
+  let latlngs = [
+    [58.28, 12.189],
+    [58.4, 12.409],
+  ];
+  let testBound = L.latLngBounds([
+    [58.1, 12.8],
+    [58.4, 12.1],
   ]);
-  L.rectangle(latLngBounds).addTo(map);
-  map.fitBounds(latLngBounds);
-  L.imageOverlay(
-    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRtmxe6ci0H4qmi0H28Bo6Dr4yfwR8lr1_WPM5zuylK6w&s",
-    latLngBounds,
-    { opacity: 0.5 }
-  ).addTo(map);
+  L.rectangle(testBound).addTo(map);
+  // var polyline = L.polyline(latlngs, { color: "red" }).addTo(map);
+  // map.fitBounds(polyline.getBounds());
 
+  // for (let x = 0; x < 10; x++) {
+  //   var polyline = L.polyline(
+  //     [
+  //       [58.28 - x / 500, 12.289],
+  //       [58.28 - x / 500, 12.309],
+  //     ],
+  //     {
+  //       color: "red",
+  //     }
+  //   ).addTo(map);
+  // }
+
+  // for (let x = 0; x < 10; x++) {
+  //   var polyline = L.polyline(
+  //     [
+  //       [58.28, 12.3 + x / 500],
+  //       [58.26, 12.3 + x / 500],
+  //     ],
+  //     {
+  //       color: "red",
+  //     }
+  //   ).addTo(map);
+  // }
+
+  console.log(map.getBounds());
+  map.on("moveend", function (ev) {
+    console.log("stopped");
+    console.log(testBound.intersects(map.getBounds()));
+  });
   /** */
 
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
