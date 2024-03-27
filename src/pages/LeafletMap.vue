@@ -1,9 +1,11 @@
 <script setup>
-import "../../leaflet.draw";
+import "../../leaflet-static-grid";
+import "leaflet-draw";
 import "leaflet/dist/leaflet.css";
 import { onMounted } from "vue";
 import axios from "axios";
 import MapPriorities from "./MapPriorities.vue";
+import { latLngBounds } from "leaflet";
 
 const leafletPolygon = defineModel("leafletPolygon");
 
@@ -18,6 +20,25 @@ onMounted(() => {
 
   // Create map
   map = L.map("map").setView([58.283, 12.293], 13);
+
+  /** TESTING DELETE LATER */
+  // test watermark
+  L.control.watermark({ position: "bottomleft" }).addTo(map);
+  // Raster image overlay
+  let latLngBounds = L.latLngBounds([
+    [58.28, 12.289],
+    [58.3, 12.309],
+  ]);
+  L.rectangle(latLngBounds).addTo(map);
+  map.fitBounds(latLngBounds);
+  L.imageOverlay(
+    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRtmxe6ci0H4qmi0H28Bo6Dr4yfwR8lr1_WPM5zuylK6w&s",
+    latLngBounds,
+    { opacity: 0.5 }
+  ).addTo(map);
+
+  /** */
+
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
     attribution:
