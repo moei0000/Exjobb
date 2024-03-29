@@ -5,12 +5,71 @@ import "leaflet/dist/leaflet.css";
 import { onMounted } from "vue";
 import axios from "axios";
 import MapPriorities from "./MapPriorities.vue";
-import { latLngBounds } from "leaflet";
+import { latLngBounds, polygon } from "leaflet";
 
 const leafletPolygon = defineModel("leafletPolygon");
 
 var map;
 var homeMarker;
+
+// Size of one cell in meters
+const cellSize = 100;
+// 1 meter in degrees
+const oneMeterInDegree = 1 / 111319.45;
+
+const degreesPerCell = cellSize * oneMeterInDegree;
+let latitudeRatio = 1;
+
+let allowDrawGrid = true;
+
+const grid = [];
+
+/**
+ * Returns the starting position of the grid
+ * @param {*} lat
+ * @param {*} lon
+ */
+function getStartLocationForGrid(latlon) {
+  // How far the inputed latitude is from a correct cell location
+  const degreeFromInputLatitude = latlon.lat % degreesPerCell;
+
+  // How far the inputed longitude is from a correct cell location
+  const degreeFromInputLongitude = latlon.lng % degreesPerCell;
+
+  // latitudeRatio = 1 / (1 - latlon.lat / 90);
+  let phi = latlon.lat * (Math.PI / 180);
+  latitudeRatio = 1 / Math.sqrt(1 - Math.sin(phi) ** 2 * Math.sin(phi) ** 2);
+  console.log("Ratio: ", latitudeRatio);
+
+  const correctLatitude = latlon.lat - degreeFromInputLatitude;
+  const correctLongitude = latlon.lng - degreeFromInputLongitude;
+  return [correctLatitude, correctLongitude];
+}
+
+function drawGrid(latlon) {
+  if (allowDrawGrid == false) {
+    return;
+  }
+  allowDrawGrid = false;
+  const latitude = latlon[0];
+  const longitude = latlon[1];
+
+  console.log("create rectangles");
+  for (let x = latitude; x > latitude - 0.02; x -= degreesPerCell) {
+    for (
+      let y = longitude;
+      y > longitude - 0.02;
+      y -= degreesPerCell * latitudeRatio
+    ) {
+      let rectangle = L.rectangle([
+        [x, y],
+        [x - degreesPerCell, y - degreesPerCell * latitudeRatio],
+      ]);
+      grid.push(rectangle);
+      rectangle.addTo(map);
+    }
+  }
+}
 
 onMounted(() => {
   // Renders leaflet correctly when refreshing page
@@ -25,15 +84,16 @@ onMounted(() => {
   // test watermark
   L.control.watermark({ position: "bottomleft" }).addTo(map);
   // Raster image overlay
-  let latlngs = [
-    [58.28, 12.189],
-    [58.4, 12.409],
-  ];
-  let testBound = L.latLngBounds([
-    [58.1, 12.8],
-    [58.4, 12.1],
-  ]);
-  L.rectangle(testBound).addTo(map);
+  // let latlngs = [
+  //   [58.28, 12.189],
+  //   [58.4, 12.409],
+  // ];
+  // let testBound = L.latLngBounds([
+  //   [58.283, 12.293],
+  //   [58.284, 12.294],
+  // ]);
+  // L.rectangle(testBound).addTo(map);
+
   // var polyline = L.polyline(latlngs, { color: "red" }).addTo(map);
   // map.fitBounds(polyline.getBounds());
 
@@ -61,10 +121,15 @@ onMounted(() => {
   //   ).addTo(map);
   // }
 
-  console.log(map.getBounds());
+  // let currentMarker = L.marker(
+  //   getStartLocationForGrid(map.getBounds()._northEast)
+  // ).addTo(map);
+  // currentMarker.addTo(map);
   map.on("moveend", function (ev) {
-    console.log("stopped");
-    console.log(testBound.intersects(map.getBounds()));
+    // Only draw grid if zoomed enough
+    if (map.getZoom() >= 15) {
+      drawGrid(getStartLocationForGrid(map.getBounds()._northEast));
+    }
   });
   /** */
 
@@ -128,8 +193,9 @@ onMounted(() => {
 
     // If adding polygon
     if (geoJSON.geometry.type == "Polygon") {
+      let polygon;
       leafletPolygon.value = geoJSON;
-      console.log(leafletPolygon.value);
+      console.log(geoJSON.geometry.coordinates);
 
       axios
         .get("http://localhost:3001/checkpolygon", {
@@ -138,10 +204,28 @@ onMounted(() => {
           },
         })
         .then(function (response) {
-          console.log(response.data);
-          L.geoJSON(geoJSON, {
+          polygon = L.geoJSON(geoJSON, {
             style: { color: response.data == true ? "red" : "green" },
           }).addTo(map);
+          console.log("polygon", polygon.getBounds());
+          grid.forEach((cell) => {
+            if (polygon.getBounds().intersects(cell.getBounds())) {
+              cell.setStyle({ fillColor: "yellow" });
+            }
+          });
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+
+      axios
+        .get("http://localhost:3001/getIntersectsInGrid", {
+          params: {
+            polygon: JSON.stringify(geoJSON.geometry.coordinates),
+          },
+        })
+        .then(function (response) {
+          console.log("getIntersects", response);
         })
         .catch(function (error) {
           console.log(error);
