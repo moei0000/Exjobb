@@ -88,11 +88,35 @@ onMounted(() => {
   //   [58.28, 12.189],
   //   [58.4, 12.409],
   // ];
-  // let testBound = L.latLngBounds([
-  //   [58.283, 12.293],
-  //   [58.284, 12.294],
-  // ]);
-  // L.rectangle(testBound).addTo(map);
+  let testBound = L.latLngBounds([
+    [
+      [
+        [
+          [58.26542, 12.28346],
+          [58.26801, 12.28346],
+          [58.26801, 12.28677],
+          [58.26542, 12.28677],
+          [58.26542, 12.28346],
+        ],
+      ],
+    ],
+  ]);
+  let b = L.latLngBounds([
+    [
+      [
+        [58.392964, 12.1138],
+        [58.294944, 11.80481],
+        [58.218359, 11.141266],
+        [58.392964, 12.1138],
+      ],
+    ],
+  ]);
+  L.rectangle(testBound, { fillColor: "orange" }).addTo(map);
+  // L.rectangle(b).addTo(map);
+
+  // L.marker(
+  //   getStartLocationForGrid(new L.latLng(58.3418677276849, 11.979554358408834))
+  // ).addTo(map);
 
   // var polyline = L.polyline(latlngs, { color: "red" }).addTo(map);
   // map.fitBounds(polyline.getBounds());
@@ -121,10 +145,6 @@ onMounted(() => {
   //   ).addTo(map);
   // }
 
-  // let currentMarker = L.marker(
-  //   getStartLocationForGrid(map.getBounds()._northEast)
-  // ).addTo(map);
-  // currentMarker.addTo(map);
   map.on("moveend", function (ev) {
     // Only draw grid if zoomed enough
     if (map.getZoom() >= 15) {
