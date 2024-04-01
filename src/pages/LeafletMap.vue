@@ -13,7 +13,7 @@ var map;
 var homeMarker;
 
 // Size of one cell in meters
-const cellSize = 100;
+const cellSize = 1000;
 // 1 meter in degrees
 const oneMeterInDegree = 1 / 111319.45;
 
@@ -23,6 +23,16 @@ let latitudeRatio = 1;
 let allowDrawGrid = true;
 
 const grid = [];
+
+function _invertCoordsArray(array) {
+  const newArray = [];
+  array.forEach((coords) => {
+    coords.forEach((c) => {
+      newArray.push([c[1], c[0]]);
+    });
+  });
+  return newArray;
+}
 
 /**
  * Returns the starting position of the grid
@@ -80,70 +90,23 @@ onMounted(() => {
   // Create map
   map = L.map("map").setView([58.283, 12.293], 13);
 
+  axios
+    .get("http://localhost:3001/getGrid")
+    .then(function (response) {
+      response.data.forEach((cell) => {
+        console.log(_invertCoordsArray(cell.geometry.coordinates));
+        L.polygon(_invertCoordsArray(cell.geometry.coordinates), {
+          color: "red",
+        }).addTo(map);
+      });
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+
   /** TESTING DELETE LATER */
   // test watermark
   L.control.watermark({ position: "bottomleft" }).addTo(map);
-  // Raster image overlay
-  // let latlngs = [
-  //   [58.28, 12.189],
-  //   [58.4, 12.409],
-  // ];
-  let testBound = L.latLngBounds([
-    [
-      [
-        [
-          [58.26542, 12.28346],
-          [58.26801, 12.28346],
-          [58.26801, 12.28677],
-          [58.26542, 12.28677],
-          [58.26542, 12.28346],
-        ],
-      ],
-    ],
-  ]);
-  let b = L.latLngBounds([
-    [
-      [
-        [58.392964, 12.1138],
-        [58.294944, 11.80481],
-        [58.218359, 11.141266],
-        [58.392964, 12.1138],
-      ],
-    ],
-  ]);
-  L.rectangle(testBound, { fillColor: "orange" }).addTo(map);
-  // L.rectangle(b).addTo(map);
-
-  // L.marker(
-  //   getStartLocationForGrid(new L.latLng(58.3418677276849, 11.979554358408834))
-  // ).addTo(map);
-
-  // var polyline = L.polyline(latlngs, { color: "red" }).addTo(map);
-  // map.fitBounds(polyline.getBounds());
-
-  // for (let x = 0; x < 10; x++) {
-  //   var polyline = L.polyline(
-  //     [
-  //       [58.28 - x / 500, 12.289],
-  //       [58.28 - x / 500, 12.309],
-  //     ],
-  //     {
-  //       color: "red",
-  //     }
-  //   ).addTo(map);
-  // }
-
-  // for (let x = 0; x < 10; x++) {
-  //   var polyline = L.polyline(
-  //     [
-  //       [58.28, 12.3 + x / 500],
-  //       [58.26, 12.3 + x / 500],
-  //     ],
-  //     {
-  //       color: "red",
-  //     }
-  //   ).addTo(map);
-  // }
 
   map.on("moveend", function (ev) {
     // Only draw grid if zoomed enough
