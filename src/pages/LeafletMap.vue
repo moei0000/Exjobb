@@ -57,6 +57,8 @@ function getStartLocationForGrid(latlon) {
 }
 
 function drawGrid(latlon) {
+  const offsetLatitude = [0.015, 0.018];
+  const offsetLongtiude = [0.028, 0.067];
   if (allowDrawGrid == false) {
     return;
   }
@@ -64,21 +66,59 @@ function drawGrid(latlon) {
   const latitude = latlon[0];
   const longitude = latlon[1];
 
-  console.log("create rectangles");
-  for (let x = latitude; x > latitude - 0.02; x -= degreesPerCell) {
-    for (
-      let y = longitude;
-      y > longitude - 0.02;
-      y -= degreesPerCell * latitudeRatio
-    ) {
-      let rectangle = L.rectangle([
-        [x, y],
-        [x - degreesPerCell, y - degreesPerCell * latitudeRatio],
-      ]);
-      grid.push(rectangle);
-      rectangle.addTo(map);
-    }
-  }
+  // L.polygon(
+  //   [
+  //     [latitude + offsetLatitude[0], longitude + offsetLongtiude[0]],
+  //     [latitude - offsetLatitude[1], longitude + offsetLongtiude[0]],
+  //     [latitude - offsetLatitude[1], longitude - offsetLongtiude[1]],
+  //     [latitude + offsetLatitude[0], longitude - offsetLongtiude[1]],
+  //     [latitude + offsetLatitude[0], longitude + offsetLongtiude[0]],
+  //   ],
+  //   { color: "red" }
+  // ).addTo(map);
+
+  // axios
+  //   .get("http://localhost:3001/getIntersectsInGrid", {
+  //     params: {
+  //       polygon: JSON.stringify([
+  //         _invertCoordsArray([
+  //           [
+  //             [latitude + offsetLatitude[0], longitude + offsetLongtiude[0]],
+  //             [latitude - offsetLatitude[1], longitude + offsetLongtiude[0]],
+  //             [latitude - offsetLatitude[1], longitude - offsetLongtiude[1]],
+  //             [latitude + offsetLatitude[0], longitude - offsetLongtiude[1]],
+  //             [latitude + offsetLatitude[0], longitude + offsetLongtiude[0]],
+  //           ],
+  //         ]),
+  //       ]),
+  //     },
+  //   })
+  //   .then(function (response) {
+  //     console.log(response.length);
+  //     response.data.forEach((cell) => {
+  //       L.polygon(_invertCoordsArray(cell.geometry.coordinates), {
+  //         color: "yellow",
+  //       }).addTo(map);
+  //     });
+  //   })
+  //   .catch(function (error) {
+  //     console.log(error);
+  //   });
+
+  // for (let x = latitude; x > latitude - 0.02; x -= degreesPerCell) {
+  //   for (
+  //     let y = longitude;
+  //     y > longitude - 0.02;
+  //     y -= degreesPerCell * latitudeRatio
+  //   ) {
+  //     let rectangle = L.rectangle([
+  //       [x, y],
+  //       [x - degreesPerCell, y - degreesPerCell * latitudeRatio],
+  //     ]);
+  //     grid.push(rectangle);
+  //     rectangle.addTo(map);
+  //   }
+  // }
 }
 
 onMounted(() => {
@@ -90,19 +130,18 @@ onMounted(() => {
   // Create map
   map = L.map("map").setView([58.283, 12.293], 13);
 
-  axios
-    .get("http://localhost:3001/getGrid")
-    .then(function (response) {
-      response.data.forEach((cell) => {
-        console.log(_invertCoordsArray(cell.geometry.coordinates));
-        L.polygon(_invertCoordsArray(cell.geometry.coordinates), {
-          color: "red",
-        }).addTo(map);
-      });
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
+  // axios
+  //   .get("http://localhost:3001/getGrid")
+  //   .then(function (response) {
+  //     response.data.forEach((cell) => {
+  //       L.polygon(_invertCoordsArray(cell.geometry.coordinates), {
+  //         color: "red",
+  //       }).addTo(map);
+  //     });
+  //   })
+  //   .catch(function (error) {
+  //     console.log(error);
+  //   });
 
   /** TESTING DELETE LATER */
   // test watermark
@@ -111,6 +150,7 @@ onMounted(() => {
   map.on("moveend", function (ev) {
     // Only draw grid if zoomed enough
     if (map.getZoom() >= 15) {
+      console.log("draw grid");
       drawGrid(getStartLocationForGrid(map.getBounds()._northEast));
     }
   });
@@ -181,20 +221,20 @@ onMounted(() => {
       console.log(geoJSON.geometry.coordinates);
 
       axios
-        .get("http://localhost:3001/checkpolygon", {
+        .get("http://localhost:3001/getIntersectsInGrid", {
           params: {
             polygon: JSON.stringify(geoJSON.geometry.coordinates),
           },
         })
         .then(function (response) {
-          polygon = L.geoJSON(geoJSON, {
-            style: { color: response.data == true ? "red" : "green" },
-          }).addTo(map);
-          console.log("polygon", polygon.getBounds());
-          grid.forEach((cell) => {
-            if (polygon.getBounds().intersects(cell.getBounds())) {
-              cell.setStyle({ fillColor: "yellow" });
-            }
+          // Save polygon
+          polygon = L.geoJSON(geoJSON).addTo(map);
+
+          // Show intersecting cells
+          response.data.forEach((cell) => {
+            L.polygon(_invertCoordsArray(cell.geometry.coordinates), {
+              color: "yellow",
+            }).addTo(map);
           });
         })
         .catch(function (error) {
