@@ -232,9 +232,16 @@ onMounted(() => {
 
           // Show intersecting cells
           response.data.forEach((cell) => {
-            L.polygon(_invertCoordsArray(cell.geometry.coordinates), {
-              color: "yellow",
-            }).addTo(map);
+            let gridCell = L.polygon(
+              _invertCoordsArray(cell.geometry.coordinates),
+              {
+                color: "yellow",
+              }
+            );
+            gridCell.on("click", () => {
+              blink(gridCell);
+            });
+            gridCell.addTo(map);
           });
         })
         .catch(function (error) {
@@ -256,6 +263,18 @@ onMounted(() => {
     }
   });
 });
+function blink(polygon) {
+  const originalColor = polygon.options.color;
+  const blinkColor = "green";
+
+  // Om polygonen redan är grönljusad, återställ färgen till originalfärgen
+  if (polygon.options.color === blinkColor) {
+    polygon.setStyle({ color: originalColor });
+  } else {
+    // Annars sätt färgen till grönt
+    polygon.setStyle({ color: blinkColor });
+  }
+}
 </script>
 
 <style scoped>
