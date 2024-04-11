@@ -172,7 +172,14 @@ onMounted(() => {
               }
             );
             gridCell.on("click", () => {
-              blink(gridCell);
+              // console.log("Included: ", grid.includes(gridCell));
+              if (!grid.includes(gridCell)) {
+                blink(gridCell);
+                grid.push(gridCell);
+              } else {
+                blink(gridCell);
+                grid.splice(grid.indexOf(gridCell), 1);
+              }
             });
             gridCell.addTo(map);
           });
@@ -180,26 +187,19 @@ onMounted(() => {
         .catch(function (error) {
           console.log(error);
         });
-
-      axios
-        .get("http://localhost:3001/getIntersectsInGrid", {
-          params: {
-            polygon: JSON.stringify(geoJSON.geometry.coordinates),
-          },
-        })
-        .then(function (response) {
-          console.log("getIntersects", response);
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
     }
   });
 });
+
 function blink(polygon) {
-  const originalColor = polygon.options.color;
+  const originalColor = "yellow";
   const blinkColor = "green";
 
+  console.log(
+    polygon.options.color === blinkColor,
+    polygon.options.color,
+    blinkColor
+  );
   // Om polygonen redan är grönljusad, återställ färgen till originalfärgen
   if (polygon.options.color === blinkColor) {
     polygon.setStyle({ color: originalColor });
