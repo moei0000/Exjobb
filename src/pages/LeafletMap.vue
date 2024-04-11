@@ -65,60 +65,6 @@ function drawGrid(latlon) {
   allowDrawGrid = false;
   const latitude = latlon[0];
   const longitude = latlon[1];
-
-  // L.polygon(
-  //   [
-  //     [latitude + offsetLatitude[0], longitude + offsetLongtiude[0]],
-  //     [latitude - offsetLatitude[1], longitude + offsetLongtiude[0]],
-  //     [latitude - offsetLatitude[1], longitude - offsetLongtiude[1]],
-  //     [latitude + offsetLatitude[0], longitude - offsetLongtiude[1]],
-  //     [latitude + offsetLatitude[0], longitude + offsetLongtiude[0]],
-  //   ],
-  //   { color: "red" }
-  // ).addTo(map);
-
-  // axios
-  //   .get("http://localhost:3001/getIntersectsInGrid", {
-  //     params: {
-  //       polygon: JSON.stringify([
-  //         _invertCoordsArray([
-  //           [
-  //             [latitude + offsetLatitude[0], longitude + offsetLongtiude[0]],
-  //             [latitude - offsetLatitude[1], longitude + offsetLongtiude[0]],
-  //             [latitude - offsetLatitude[1], longitude - offsetLongtiude[1]],
-  //             [latitude + offsetLatitude[0], longitude - offsetLongtiude[1]],
-  //             [latitude + offsetLatitude[0], longitude + offsetLongtiude[0]],
-  //           ],
-  //         ]),
-  //       ]),
-  //     },
-  //   })
-  //   .then(function (response) {
-  //     console.log(response.length);
-  //     response.data.forEach((cell) => {
-  //       L.polygon(_invertCoordsArray(cell.geometry.coordinates), {
-  //         color: "yellow",
-  //       }).addTo(map);
-  //     });
-  //   })
-  //   .catch(function (error) {
-  //     console.log(error);
-  //   });
-
-  // for (let x = latitude; x > latitude - 0.02; x -= degreesPerCell) {
-  //   for (
-  //     let y = longitude;
-  //     y > longitude - 0.02;
-  //     y -= degreesPerCell * latitudeRatio
-  //   ) {
-  //     let rectangle = L.rectangle([
-  //       [x, y],
-  //       [x - degreesPerCell, y - degreesPerCell * latitudeRatio],
-  //     ]);
-  //     grid.push(rectangle);
-  //     rectangle.addTo(map);
-  //   }
-  // }
 }
 
 onMounted(() => {
@@ -129,19 +75,6 @@ onMounted(() => {
 
   // Create map
   map = L.map("map").setView([58.283, 12.293], 13);
-
-  // axios
-  //   .get("http://localhost:3001/getGrid")
-  //   .then(function (response) {
-  //     response.data.forEach((cell) => {
-  //       L.polygon(_invertCoordsArray(cell.geometry.coordinates), {
-  //         color: "red",
-  //       }).addTo(map);
-  //     });
-  //   })
-  //   .catch(function (error) {
-  //     console.log(error);
-  //   });
 
   /** TESTING DELETE LATER */
   // test watermark
