@@ -154,9 +154,9 @@ onMounted(() => {
       console.log(geoJSON.geometry.coordinates);
 
       axios
-        .get("http://localhost:3001/getIntersectsInGrid", {
+        .get("http://localhost:3001/geoServer", {
           params: {
-            polygon: JSON.stringify(geoJSON.geometry.coordinates),
+            polygon: JSON.stringify(_invertCoordsArray(geoJSON.geometry.coordinates)),
           },
         })
         .then(function (response) {
@@ -164,9 +164,10 @@ onMounted(() => {
           polygon = L.geoJSON(geoJSON).addTo(map);
 
           // Show intersecting cells
-          response.data.forEach((cell) => {
+          response.data.data.forEach((cell) => {
+
             let gridCell = L.polygon(
-              _invertCoordsArray(cell.geometry.coordinates),
+              _invertCoordsArray(cell.geometry.coordinates[0]),
               {
                 color: "yellow",
               }
