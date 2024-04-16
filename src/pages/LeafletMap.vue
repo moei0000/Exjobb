@@ -1,11 +1,12 @@
 <script setup>
 import "../../leaflet-static-grid";
+import "../../leaflet-mark-polygons";
 import "leaflet-draw";
 import "leaflet/dist/leaflet.css";
 import { onMounted } from "vue";
 import axios from "axios";
 import MapPriorities from "./MapPriorities.vue";
-import { latLngBounds, polygon } from "leaflet";
+import { Draggable, latLngBounds, polygon } from "leaflet";
 
 const leafletPolygon = defineModel("leafletPolygon");
 
@@ -21,6 +22,9 @@ const degreesPerCell = cellSize * oneMeterInDegree;
 let latitudeRatio = 1;
 
 let allowDrawGrid = true;
+
+let markCellMode = false;
+let removeMarkCellMode = false;
 
 const grid = [];
 
@@ -80,12 +84,19 @@ onMounted(() => {
   // test watermark
   L.control.watermark({ position: "bottomleft" }).addTo(map);
 
+  L.control.markmode().addTo(map);
+
   map.on("moveend", function (ev) {
     // Only draw grid if zoomed enough
     if (map.getZoom() >= 15) {
       console.log("draw grid");
       drawGrid(getStartLocationForGrid(map.getBounds()._northEast));
     }
+  });
+
+  map.on("mouseup", () => {
+    markCellMode = false;
+    removeMarkCellMode = false;
   });
   /** */
 
@@ -156,7 +167,9 @@ onMounted(() => {
       axios
         .get("http://localhost:3001/geoServer", {
           params: {
-            polygon: JSON.stringify(_invertCoordsArray(geoJSON.geometry.coordinates)),
+            polygon: JSON.stringify(
+              _invertCoordsArray(geoJSON.geometry.coordinates)
+            ),
           },
         })
         .then(function (response) {
@@ -165,22 +178,35 @@ onMounted(() => {
 
           // Show intersecting cells
           response.data.data.forEach((cell) => {
-
             let gridCell = L.polygon(
               _invertCoordsArray(cell.geometry.coordinates[0]),
               {
                 color: "yellow",
               }
             );
-            gridCell.on("click", () => {
-              // console.log("Included: ", grid.includes(gridCell));
+            gridCell.on("mousedown", () => {
+              map.dragging.disable();
               if (!grid.includes(gridCell)) {
-                blink(gridCell);
-                grid.push(gridCell);
+                console.log("add");
+                setMarked(gridCell, true);
+                markCellMode = true;
               } else {
-                blink(gridCell);
-                grid.splice(grid.indexOf(gridCell), 1);
+                console.log("remove");
+                setMarked(gridCell, false);
+                removeMarkCellMode = true;
               }
+            });
+            gridCell.on("mouseover", () => {
+              map.dragging.enable();
+              if (markCellMode) {
+                setMarked(gridCell, true);
+              }
+              if (removeMarkCellMode) {
+                setMarked(gridCell, false);
+              }
+            });
+            gridCell.on("mouseout", () => {
+              map.dragging.enable();
             });
             gridCell.addTo(map);
           });
@@ -192,21 +218,18 @@ onMounted(() => {
   });
 });
 
-function blink(polygon) {
+function setMarked(polygon, mark) {
   const originalColor = "yellow";
-  const blinkColor = "green";
+  const markColor = "green";
 
-  console.log(
-    polygon.options.color === blinkColor,
-    polygon.options.color,
-    blinkColor
-  );
   // Om polygonen redan är grönljusad, återställ färgen till originalfärgen
-  if (polygon.options.color === blinkColor) {
-    polygon.setStyle({ color: originalColor });
+  if (mark) {
+    grid.push(polygon);
+    polygon.setStyle({ color: markColor });
   } else {
     // Annars sätt färgen till grönt
-    polygon.setStyle({ color: blinkColor });
+    grid.splice(grid.indexOf(polygon), 1);
+    polygon.setStyle({ color: originalColor });
   }
 }
 </script>
