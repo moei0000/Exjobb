@@ -6,7 +6,7 @@ import "leaflet/dist/leaflet.css";
 import { onMounted } from "vue";
 import axios from "axios";
 import MapPriorities from "./MapPriorities.vue";
-import { Draggable, latLngBounds, polygon } from "leaflet";
+import { Draggable, latLngBounds, polygon, rectangle } from "leaflet";
 
 const leafletPolygon = defineModel("leafletPolygon");
 
@@ -36,6 +36,18 @@ function _invertCoordsArray(array) {
     });
   });
   return newArray;
+}
+
+function createPolygonFromPoint(lon, lat, latOffset, lonOffset) {
+  return [
+    [
+      [lon, lat],
+      [lonOffset, lat],
+      [lonOffset, latOffset],
+      [lon, latOffset],
+      [lon, lat],
+    ],
+  ];
 }
 
 /**
@@ -162,52 +174,67 @@ onMounted(() => {
     if (geoJSON.geometry.type == "Polygon") {
       let polygon;
       leafletPolygon.value = geoJSON;
-      console.log(geoJSON.geometry.coordinates);
+      polygon = L.geoJSON(geoJSON).addTo(map);
 
+      const northEast = polygon.getBounds()._northEast;
+      const southWest = polygon.getBounds()._southWest;
+
+      const center = polygon.getBounds().getCenter();
+
+      const northEastDistance = map.distance(center, northEast);
+      const southWestDistance = map.distance(center, southWest);
+
+      const radius = Math.max(southWestDistance, northEastDistance);
+      L.circle(center, { radius }).addTo(map);
       axios
-        .get("http://localhost:3001/geoServer", {
+        .get("http://localhost:3001/getIntersectsInGrid", {
           params: {
-            polygon: JSON.stringify(
-              _invertCoordsArray(geoJSON.geometry.coordinates)
-            ),
+            polygon: JSON.stringify(geoJSON.geometry.coordinates),
+            center: JSON.stringify([center.lng, center.lat]),
+            radius: radius,
           },
         })
         .then(function (response) {
-          // Save polygon
-          polygon = L.geoJSON(geoJSON).addTo(map);
-
           // Show intersecting cells
-          response.data.data.forEach((cell) => {
+          response.data.forEach((cell) => {
             let gridCell = L.polygon(
-              _invertCoordsArray(cell.geometry.coordinates[0]),
+              _invertCoordsArray(
+                createPolygonFromPoint(
+                  cell.geometry.coordinates[0],
+                  cell.geometry.coordinates[1],
+                  cell.offset.lat,
+                  cell.offset.lon
+                )
+              ),
               {
                 color: "yellow",
               }
             );
-            gridCell.on("mousedown", () => {
-              map.dragging.disable();
-              if (!grid.includes(gridCell)) {
-                console.log("add");
-                setMarked(gridCell, true);
-                markCellMode = true;
-              } else {
-                console.log("remove");
-                setMarked(gridCell, false);
-                removeMarkCellMode = true;
-              }
-            });
-            gridCell.on("mouseover", () => {
-              map.dragging.enable();
-              if (markCellMode) {
-                setMarked(gridCell, true);
-              }
-              if (removeMarkCellMode) {
-                setMarked(gridCell, false);
-              }
-            });
-            gridCell.on("mouseout", () => {
-              map.dragging.enable();
-            });
+
+            // gridCell.on("mousedown", () => {
+            //   map.dragging.disable();
+            //   if (!grid.includes(gridCell)) {
+            //     console.log("add");
+            //     setMarked(gridCell, true);
+            //     markCellMode = true;
+            //   } else {
+            //     console.log("remove");
+            //     setMarked(gridCell, false);
+            //     removeMarkCellMode = true;
+            //   }
+            // });
+            // gridCell.on("mouseover", () => {
+            //   map.dragging.enable();
+            //   if (markCellMode) {
+            //     setMarked(gridCell, true);
+            //   }
+            //   if (removeMarkCellMode) {
+            //     setMarked(gridCell, false);
+            //   }
+            // });
+            // gridCell.on("mouseout", () => {
+            //   map.dragging.enable();
+            // });
             gridCell.addTo(map);
           });
         })
