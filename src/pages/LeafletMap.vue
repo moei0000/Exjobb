@@ -6,7 +6,7 @@ import "leaflet/dist/leaflet.css";
 import { onMounted } from "vue";
 import axios from "axios";
 import MapPriorities from "./MapPriorities.vue";
-import { Draggable, latLngBounds, polygon, rectangle } from "leaflet";
+import { Draggable, bounds, latLngBounds, polygon, rectangle } from "leaflet";
 
 const leafletPolygon = defineModel("leafletPolygon");
 
@@ -116,6 +116,7 @@ onMounted(() => {
     maxZoom: 19,
     attribution:
       '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    noWrap: true,
   }).addTo(map);
 
   axios
