@@ -5,8 +5,6 @@ import "leaflet-draw";
 import "leaflet/dist/leaflet.css";
 import { onMounted } from "vue";
 import axios from "axios";
-import MapPriorities from "./MapPriorities.vue";
-import { Draggable, bounds, latLngBounds, polygon, rectangle } from "leaflet";
 
 const leafletPolygon = defineModel("leafletPolygon");
 
@@ -122,7 +120,6 @@ onMounted(() => {
   axios
     .get("http://localhost:3001/gethome")
     .then(function (response) {
-      console.log(response.data[0].location.coordinates);
       homeMarker = L.marker([
         response.data[0].location.coordinates[1],
         response.data[0].location.coordinates[0],
@@ -187,12 +184,16 @@ onMounted(() => {
 
       const radius = Math.max(southWestDistance, northEastDistance);
       L.circle(center, { radius }).addTo(map);
+
+      const polygonArea = L.GeometryUtil.geodesicArea(e.layer._latlngs[0]);
+
       axios
         .get("http://localhost:3001/getIntersectsInGrid", {
           params: {
             polygon: JSON.stringify(geoJSON.geometry.coordinates),
             center: JSON.stringify([center.lng, center.lat]),
             radius: radius,
+            area: polygonArea,
           },
         })
         .then(function (response) {
@@ -211,31 +212,6 @@ onMounted(() => {
                 color: "yellow",
               }
             );
-
-            // gridCell.on("mousedown", () => {
-            //   map.dragging.disable();
-            //   if (!grid.includes(gridCell)) {
-            //     console.log("add");
-            //     setMarked(gridCell, true);
-            //     markCellMode = true;
-            //   } else {
-            //     console.log("remove");
-            //     setMarked(gridCell, false);
-            //     removeMarkCellMode = true;
-            //   }
-            // });
-            // gridCell.on("mouseover", () => {
-            //   map.dragging.enable();
-            //   if (markCellMode) {
-            //     setMarked(gridCell, true);
-            //   }
-            //   if (removeMarkCellMode) {
-            //     setMarked(gridCell, false);
-            //   }
-            // });
-            // gridCell.on("mouseout", () => {
-            //   map.dragging.enable();
-            // });
             gridCell.addTo(map);
           });
         })
