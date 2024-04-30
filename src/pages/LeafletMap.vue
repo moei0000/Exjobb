@@ -43,11 +43,12 @@ function _invertCoordsArray(array) {
 function createPolygonFromPoint(lon, lat, latOffset, lonOffset) {
   return [
     [
-      [lon, lat],
-      [lonOffset, lat],
-      [lonOffset, latOffset],
-      [lon, latOffset],
-      [lon, lat],
+      // [lon, lat],
+      [lon - lonOffset, lat + latOffset],
+      [lon + lonOffset, lat + latOffset],
+      [lon + lonOffset, lat - latOffset],
+      [lon - lonOffset, lat - latOffset],
+      [lon - lonOffset, lat + latOffset],
     ],
   ];
 }
@@ -197,7 +198,17 @@ onMounted(() => {
         .get("http://localhost:3001/getIntersectsInGrid", {
           params: {
             polygon: JSON.stringify(geoJSON.geometry.coordinates),
+            // polygon: JSON.stringify([
+            //   [
+            //     [-170, -90],
+            //     [-180, -90],
+            //     [-180, -80],
+            //     [-170, -80],
+            //     [-170, -90],
+            //   ],
+            // ]),
             center: JSON.stringify([center.lng, center.lat]),
+            // center: JSON.stringify([-138.60351550000001, -80.904393]),
             radius: radius,
             area: polygonArea.value,
             regionMinArea: regionMinArea.value,
