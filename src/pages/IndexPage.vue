@@ -4,14 +4,41 @@
     <header>
       <h1 style="font-size: 29px; color: green">Greenmapper</h1>
     </header>
-    Polygon: {{ leafletPolygon }}<br />
-    Title: {{ descTitle }}<br />
-    Text: {{ descText }}<br />
-    Rating: {{ ratingScore }} of 10<br />
-    Freq: {{ visitFreq }} <br />
-    Activites: {{ mapActivities }} <br />
-    Priority: {{ mapPriorities }} <br />
-    Amount: {{ donateAmount }} <br />
+    <div style="margin: 15px">
+      <!-- Polygon: {{ leafletPolygon }}<br />
+      Title: {{ descTitle }}<br />
+      Text: {{ descText }}<br />
+      Rating: {{ ratingScore }} of 10<br />
+      Freq: {{ visitFreq }} <br />
+      Activites: {{ mapActivities }} <br />
+      Priority: {{ mapPriorities }} <br />
+      Amount: {{ donateAmount }} <br /> -->
+      PolygonArea: {{ polygonArea }} km² <br />
+      Region minium(1km cells):
+      <q-slider
+        v-model="regionMinSlider"
+        :min="1"
+        :max="100"
+        @change="updateRegionSliderValues"
+        label-always
+      />
+      Country minimum(10km cells):
+      <q-slider
+        v-model="countryMinSlider"
+        :min="101"
+        :max="5000"
+        @change="updateCountrySliderValues"
+        label-always
+      />
+      World minimum(100km cells):
+      <q-slider
+        v-model="worldMinSlider"
+        :min="5001"
+        :max="2000000"
+        @change="updateWorldSliderValues"
+        label-always
+      />
+    </div>
     <div class="stepper">
       <q-stepper
         v-model="step"
@@ -24,7 +51,13 @@
         :contracted="$q.platform.is.mobile"
       >
         <q-step :name="1" title="Map" prefix="1" :done="step > 1">
-          <LeafletMap v-model:leafletPolygon="leafletPolygon" />
+          <LeafletMap
+            v-model:leafletPolygon="leafletPolygon"
+            v-model:polygonArea="polygonArea"
+            v-model:regionMinSlider="regionMinSlider"
+            v-model:countryMinSlider="countryMinSlider"
+            v-model:worldMinSlider="worldMinSlider"
+          />
         </q-step>
 
         <q-step :name="2" title="Description" prefix="2" :done="step > 2">
@@ -109,9 +142,31 @@ export default {
     const mapActivities = ref([]);
     const mapPriorities = ref("");
     const donateAmount = ref(0);
+    const polygonArea = ref(0);
+    const regionMinSlider = ref(
+      localStorage.regionMin ? localStorage.regionMin : 50
+    );
+    const countryMinSlider = ref(
+      localStorage.countryMin ? localStorage.countryMin : 3000
+    );
+    const worldMinSlider = ref(
+      localStorage.worldMin ? localStorage.worldMin : 1500000
+    );
 
     const updateMapActivities = (newValue) => {
       mapActivities.value = newValue;
+    };
+
+    const updateRegionSliderValues = (value) => {
+      localStorage.regionMin = value;
+    };
+
+    const updateCountrySliderValues = (value) => {
+      localStorage.countryMin = value;
+    };
+
+    const updateWorldSliderValues = (value) => {
+      localStorage.worldMin = value;
     };
 
     // When stepper is finished
@@ -129,6 +184,13 @@ export default {
       finish,
       mapPriorities,
       donateAmount,
+      polygonArea,
+      regionMinSlider,
+      countryMinSlider,
+      worldMinSlider,
+      updateRegionSliderValues,
+      updateCountrySliderValues,
+      updateWorldSliderValues,
     };
   },
 };

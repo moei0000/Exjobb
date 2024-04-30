@@ -7,6 +7,10 @@ import { onMounted } from "vue";
 import axios from "axios";
 
 const leafletPolygon = defineModel("leafletPolygon");
+const polygonArea = defineModel("polygonArea");
+const regionMinArea = defineModel("regionMinSlider");
+const countryMinArea = defineModel("countryMinSlider");
+const worldMinArea = defineModel("worldMinSlider");
 
 var map;
 var homeMarker;
@@ -145,7 +149,7 @@ onMounted(() => {
   });
   map.addControl(drawControl);
 
-  map.on(L.Draw.Event.CREATED, function (e) {
+  map.on(L.Draw.Event.CREATED, async function (e) {
     const geoJSON = e.layer.toGeoJSON();
     console.log(geoJSON);
     // If marker update home location
@@ -185,15 +189,20 @@ onMounted(() => {
       const radius = Math.max(southWestDistance, northEastDistance);
       L.circle(center, { radius }).addTo(map);
 
-      const polygonArea = L.GeometryUtil.geodesicArea(e.layer._latlngs[0]);
-
+      polygonArea.value = Math.ceil(
+        L.GeometryUtil.geodesicArea(e.layer._latlngs[0]) / 1000000
+      );
+      await new Promise((resolve) => setTimeout(resolve, 200));
       axios
         .get("http://localhost:3001/getIntersectsInGrid", {
           params: {
             polygon: JSON.stringify(geoJSON.geometry.coordinates),
             center: JSON.stringify([center.lng, center.lat]),
             radius: radius,
-            area: polygonArea,
+            area: polygonArea.value,
+            regionMinArea: regionMinArea.value,
+            countryMinArea: countryMinArea.value,
+            worldMinArea: worldMinArea.value,
           },
         })
         .then(function (response) {
