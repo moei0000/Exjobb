@@ -1,170 +1,109 @@
-<template>
-  <div class="container">
-    <!-- Right side for Mastercard -->
-    <div class="right-side">
-      <h1>Donate with Mastercard</h1>
-      <div class="form-group">
-        <label for="cardNumber">Card Number:</label>
-        <input type="text" id="cardNumber" v-model="cardNumber" required />
-      </div>
-      <div class="form-group">
-        <label for="cardHolder">Card Holder:</label>
-        <input type="text" id="cardHolder" v-model="cardHolder" required />
-      </div>
-      <div class="form-group">
-        <label for="expirationDate">Expiration Date:</label>
-        <input
-          type="date"
-          id="expirationDate"
-          v-model="expirationDate"
-          required
-        />
-      </div>
-      <div class="form-group">
-        <label for="cvv">CVV:</label>
-        <input type="text" id="cvv" v-model="cvv" required />
-      </div>
-      <div class="form-group">
-        <label for="amount">Amount:</label>
-        <input
-          type="text"
-          id="amount"
-          v-model="donateAmount"
-          required
-          :disabled="
-            cardNumber == '' ||
-            cardHolder == '' ||
-            expirationDate == '' ||
-            cvv == ''
-          "
-        />
-      </div>
-      <button
-        @click="submitMastercard"
-        class="submit-button"
-        :disabled="
-          cardNumber == '' ||
-          cardHolder == '' ||
-          expirationDate == '' ||
-          cvv == '' ||
-          donateAmount == ''
-        "
-      >
-        Submit
-      </button>
-      <p
-        v-if="showMastercardMessage"
-        class="message"
-        :style="{ color: mastercardMessageColor }"
-      >
-        {{ mastercardMessage }}
-      </p>
-    </div>
+<script setup>
+import "../../leaflet-static-grid";
+import "../../leaflet-mark-polygons";
+import "leaflet-draw";
+import "leaflet/dist/leaflet.css";
+import { onMounted, toRaw } from "vue";
 
-    <!-- QR Code -->
-    <div class="qr-code">
-      <h1>Scan QR Code to Donate</h1>
-      <img :src="qrCodeUrl" alt="QR Code" />
-      <p
-        v-if="showQrMessage"
-        class="message"
-        :style="{ color: qrMessageColor }"
-      >
-        {{ qrMessage }}
-      </p>
-    </div>
+const selectedCells = defineModel("selectedCells");
 
-    <!-- Left side for PayPal -->
-    <div class="left-side">
-      <h1>Donate with PayPal</h1>
-      <p style="color: blue">paypal@greenmapper.com</p>
-    </div>
-  </div>
-</template>
+let map;
 
-<script>
-import { ref, watch } from "vue";
-export default {
-  emits: ["update:donateAmount"],
-  setup(props, { emit }) {
-    const donateAmount = ref(0);
+onMounted(() => {
+  // Renders leaflet correctly when refreshing page
+  setTimeout(function () {
+    window.dispatchEvent(new Event("resize"));
+  }, 300);
 
-    // Emitting the updated value of donateAmount whenever it changes
-    watch(donateAmount, (newValue) => {
-      emit("update:donateAmount", newValue);
-    });
+  map = L.map("map").setView([58.283, 12.293], 13);
 
-    return {
-      donateAmount,
-    };
-  },
-  data() {
-    return {
-      cardNumber: "",
-      cardHolder: "",
-      expirationDate: "",
-      cvv: "",
-      // amount: '',
-      qrCodeUrl: "path/to/qr-code.png", // Replace 'path/to/qr-code.png' with the actual path to your QR code image
-      showMastercardMessage: false,
-      showQrMessage: false,
-      showPayPalMessage: false,
-      mastercardMessage: "",
-      qrMessage: "",
-      payPalMessage: "",
-      mastercardMessageColor: "green",
-      qrMessageColor: "green",
-      payPalMessageColor: "green",
-    };
-  },
-  methods: {
-    submitMastercard() {
-      if (
-        this.cardNumber &&
-        this.cardHolder &&
-        this.expirationDate &&
-        this.cvv
-        // && this.amount
-      ) {
-        this.mastercardMessage = "Thanks!";
-        this.showMastercardMessage = true;
-      } else {
-        this.mastercardMessage = "Try Again!";
-        this.mastercardMessageColor = "red";
-        this.showMastercardMessage = true;
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution:
+      '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    noWrap: true,
+  }).addTo(map);
+
+  selectedCells.value.forEach((cell) => {
+    console.log(toRaw(cell)._bounds);
+    let gridCell = L.polygon(
+      _invertCoordsArray(
+        createPolygonFromPoint(
+          cell.geometry.coordinates[0],
+          cell.geometry.coordinates[1],
+          cell.offset.lat,
+          cell.offset.lon
+        )
+      ),
+      {
+        color: "yellow",
       }
-    },
-  },
-};
+    );
+    gridCell.addTo(map);
+  });
+  // selectedCells.value.forEach((cell, index) => {
+
+  // });
+});
+
+function _invertCoordsArray(array) {
+  const newArray = [];
+  array.forEach((coords) => {
+    coords.forEach((c) => {
+      newArray.push([c[1], c[0]]);
+    });
+  });
+  return newArray;
+}
+
+function createPolygonFromPoint(lon, lat, latOffset, lonOffset) {
+  return [
+    [
+      [lon, lat],
+      [lon, lat + latOffset],
+      [lon + lonOffset, lat + latOffset],
+      [lon + lonOffset, lat],
+      [lon, lat],
+    ],
+  ];
+}
 </script>
 
-<style scoped>
-.container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+<template>
+  <div id="map"></div>
+  <h1>Donate</h1>
 
-.right-side,
-.left-side {
-  width: 45%;
-}
+  <!-- Card Number -->
+  <q-input v-model="donateNumber" label="Card Number" filled />
 
-.qr-code {
-  width: 45%;
-  text-align: center;
-}
+  <!-- Card Holder -->
+  <q-input v-model="donateHolder" label="Card Holder" filled />
 
-.submit-button {
-  background-color: blue;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
+  <!-- Expiration date -->
+  <!-- Date picker -->
 
-.message {
-  font-size: 18px;
+  <!-- CVV -->
+  <q-input v-model="donateCVV" label="CVV" filled />
+
+  <!-- Amount -->
+  <q-input v-model="donateAmount" label="Amount" filled />
+
+  <ul v-if="selectedCells.length">
+    <li v-for="cell in selectedCells" :key="cell._bounds">
+      <span>Lat: {{ cell._bounds._southWest.lat }}</span
+      ><br />
+      <span>Lon: {{ cell._bounds._southWest.lng }}</span>
+    </li>
+  </ul>
+</template>
+
+<style>
+#map {
+  height: 200px;
+  width: 100%;
+}
+h1 {
+  color: green;
+  font-size: 13pt;
 }
 </style>

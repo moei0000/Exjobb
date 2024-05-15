@@ -5,15 +5,9 @@
       <h1 style="font-size: 29px; color: green">Greenmapper</h1>
     </header>
     <div style="margin: 15px">
-      <!-- Polygon: {{ leafletPolygon }}<br />
-      Title: {{ descTitle }}<br />
-      Text: {{ descText }}<br />
-      Rating: {{ ratingScore }} of 10<br />
-      Freq: {{ visitFreq }} <br />
-      Activites: {{ mapActivities }} <br />
-      Priority: {{ mapPriorities }} <br />
-      Amount: {{ donateAmount }} <br /> -->
       PolygonArea: {{ polygonArea }} km² <br />
+      Selected cells: {{ selectedCells.length }}
+      <br />
       Region minium(1km cells):
       <q-slider
         v-model="regionMinSlider"
@@ -53,6 +47,7 @@
         <q-step :name="1" title="Map" prefix="1" :done="step > 1">
           <LeafletMap
             v-model:leafletPolygon="leafletPolygon"
+            v-model:selectedCells="selectedCells"
             v-model:polygonArea="polygonArea"
             v-model:regionMinSlider="regionMinSlider"
             v-model:countryMinSlider="countryMinSlider"
@@ -64,6 +59,7 @@
           <MapDescription
             v-model:descTitle="descTitle"
             v-model:descText="descText"
+            v-model:selectedCells="selectedCells"
           />
         </q-step>
 
@@ -87,7 +83,10 @@
         </q-step>
 
         <q-step :name="7" title="Donate" prefix="7" :done="step > 7">
-          <MapDonate v-model:donateAmount="donateAmount" />
+          <MapDonate
+            v-model:donateAmount="donateAmount"
+            v-model:selectedCells="selectedCells"
+          />
         </q-step>
         <template v-slot:navigation>
           <q-stepper-navigation>
@@ -142,6 +141,7 @@ export default {
     const mapActivities = ref([]);
     const mapPriorities = ref("");
     const donateAmount = ref(0);
+    const selectedCells = ref([]);
     const polygonArea = ref(0);
     const regionMinSlider = ref(
       localStorage.regionMin ? localStorage.regionMin : 50
@@ -184,6 +184,7 @@ export default {
       finish,
       mapPriorities,
       donateAmount,
+      selectedCells,
       polygonArea,
       regionMinSlider,
       countryMinSlider,

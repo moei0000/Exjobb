@@ -3,17 +3,19 @@ import "../../leaflet-static-grid";
 import "../../leaflet-mark-polygons";
 import "leaflet-draw";
 import "leaflet/dist/leaflet.css";
-import { onMounted } from "vue";
+import { onMounted, toRaw } from "vue";
 import axios from "axios";
 
+import { inverse } from "mgrs";
+
 const leafletPolygon = defineModel("leafletPolygon");
+const selectedCells = defineModel("selectedCells");
 const polygonArea = defineModel("polygonArea");
 const regionMinArea = defineModel("regionMinSlider");
 const countryMinArea = defineModel("countryMinSlider");
 const worldMinArea = defineModel("worldMinSlider");
 
-var map;
-var homeMarker;
+let map;
 
 // Size of one cell in meters
 const cellSize = 1000;
@@ -21,14 +23,11 @@ const cellSize = 1000;
 const oneMeterInDegree = 1 / 111319.45;
 
 const degreesPerCell = cellSize * oneMeterInDegree;
-let latitudeRatio = 1;
 
-let allowDrawGrid = true;
-
-let markCellMode = false;
-let removeMarkCellMode = false;
-
-const grid = [];
+// Markmode true will set cells to markSetting
+let markMode = false;
+// Wheter to to select or deselct a cell while in markmode
+let markSetting = false;
 
 function _invertCoordsArray(array) {
   const newArray = [];
@@ -43,47 +42,13 @@ function _invertCoordsArray(array) {
 function createPolygonFromPoint(lon, lat, latOffset, lonOffset) {
   return [
     [
-      // [lon, lat],
-      [lon - lonOffset, lat + latOffset],
+      [lon, lat],
+      [lon, lat + latOffset],
       [lon + lonOffset, lat + latOffset],
-      [lon + lonOffset, lat - latOffset],
-      [lon - lonOffset, lat - latOffset],
-      [lon - lonOffset, lat + latOffset],
+      [lon + lonOffset, lat],
+      [lon, lat],
     ],
   ];
-}
-
-/**
- * Returns the starting position of the grid
- * @param {*} lat
- * @param {*} lon
- */
-function getStartLocationForGrid(latlon) {
-  // How far the inputed latitude is from a correct cell location
-  const degreeFromInputLatitude = latlon.lat % degreesPerCell;
-
-  // How far the inputed longitude is from a correct cell location
-  const degreeFromInputLongitude = latlon.lng % degreesPerCell;
-
-  // latitudeRatio = 1 / (1 - latlon.lat / 90);
-  let phi = latlon.lat * (Math.PI / 180);
-  latitudeRatio = 1 / Math.sqrt(1 - Math.sin(phi) ** 2 * Math.sin(phi) ** 2);
-  console.log("Ratio: ", latitudeRatio);
-
-  const correctLatitude = latlon.lat - degreeFromInputLatitude;
-  const correctLongitude = latlon.lng - degreeFromInputLongitude;
-  return [correctLatitude, correctLongitude];
-}
-
-function drawGrid(latlon) {
-  const offsetLatitude = [0.015, 0.018];
-  const offsetLongtiude = [0.028, 0.067];
-  if (allowDrawGrid == false) {
-    return;
-  }
-  allowDrawGrid = false;
-  const latitude = latlon[0];
-  const longitude = latlon[1];
 }
 
 onMounted(() => {
@@ -101,17 +66,28 @@ onMounted(() => {
 
   L.control.markmode().addTo(map);
 
-  map.on("moveend", function (ev) {
-    // Only draw grid if zoomed enough
-    if (map.getZoom() >= 15) {
-      console.log("draw grid");
-      drawGrid(getStartLocationForGrid(map.getBounds()._northEast));
-    }
-  });
+  // for (let x = 0; x < 10; x++) {
+  //   for (let y = 0; y < 10; y++) {
+  //     let coords = [12.3 + x / 110, y / 100];
+  //     // L.marker([coords[1], coords[0]]).addTo(map);
+  //     var mgrsString = forward(coords, 2);
+  //     var bbox = inverse(mgrsString);
+  //     var newRec = L.rectangle([
+  //       [bbox[1], bbox[0]],
+  //       [bbox[3], bbox[2]],
+  //     ]);
+  //     console.log(mgrsString, bbox, newRec);
+  //     newRec.addTo(map);
+  //   }
+  // }
+  // map.fitBounds([
+  //   [-180, -170],
+  //   [-90, -80],
+  // ]);
 
   map.on("mouseup", () => {
-    markCellMode = false;
-    removeMarkCellMode = false;
+    map.dragging.enable();
+    markMode = false;
   });
   /** */
 
@@ -122,17 +98,8 @@ onMounted(() => {
     noWrap: true,
   }).addTo(map);
 
-  axios
-    .get("http://localhost:3001/gethome")
-    .then(function (response) {
-      homeMarker = L.marker([
-        response.data[0].location.coordinates[1],
-        response.data[0].location.coordinates[0],
-      ]).addTo(map);
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
+  //Default EPSG3857
+  map.options.crs = L.CRS.EPSG3857;
 
   // FeatureGroup is to store editable layers
   var drawnItems = new L.FeatureGroup();
@@ -152,27 +119,6 @@ onMounted(() => {
 
   map.on(L.Draw.Event.CREATED, async function (e) {
     const geoJSON = e.layer.toGeoJSON();
-    console.log(geoJSON);
-    // If marker update home location
-    if (geoJSON.geometry.type == "Point") {
-      var type = e.layerType,
-        layer = e.layer;
-      if (homeMarker != null) {
-        map.removeLayer(homeMarker);
-      }
-      homeMarker = e.layer;
-      map.addLayer(homeMarker);
-      L.geoJSON(geoJSON).addTo(map);
-
-      console.log(geoJSON.geometry.coordinates);
-      axios
-        .post("http://localhost:3001/sethome", geoJSON.geometry.coordinates)
-        .then(function (response) {})
-        .catch(function (error) {
-          console.log(error);
-        });
-    }
-
     // If adding polygon
     if (geoJSON.geometry.type == "Polygon") {
       let polygon;
@@ -188,7 +134,7 @@ onMounted(() => {
       const southWestDistance = map.distance(center, southWest);
 
       const radius = Math.max(southWestDistance, northEastDistance);
-      L.circle(center, { radius }).addTo(map);
+      // L.circle(center, { radius }).addTo(map);
 
       polygonArea.value = Math.ceil(
         L.GeometryUtil.geodesicArea(e.layer._latlngs[0]) / 1000000
@@ -198,17 +144,7 @@ onMounted(() => {
         .get("http://localhost:3001/getIntersectsInGrid", {
           params: {
             polygon: JSON.stringify(geoJSON.geometry.coordinates),
-            // polygon: JSON.stringify([
-            //   [
-            //     [-170, -90],
-            //     [-180, -90],
-            //     [-180, -80],
-            //     [-170, -80],
-            //     [-170, -90],
-            //   ],
-            // ]),
             center: JSON.stringify([center.lng, center.lat]),
-            // center: JSON.stringify([-138.60351550000001, -80.904393]),
             radius: radius,
             area: polygonArea.value,
             regionMinArea: regionMinArea.value,
@@ -217,8 +153,12 @@ onMounted(() => {
           },
         })
         .then(function (response) {
+          response.data.mgrsGrid.forEach((mgrsString, index) => {
+            createMGRSCell(mgrsString).addTo(map);
+          });
+
           // Show intersecting cells
-          response.data.forEach((cell) => {
+          response.data.createdGrid.forEach((cell, index) => {
             let gridCell = L.polygon(
               _invertCoordsArray(
                 createPolygonFromPoint(
@@ -229,9 +169,20 @@ onMounted(() => {
                 )
               ),
               {
-                color: "yellow",
+                color:
+                  polygonArea.value > worldMinArea.value ? "red" : "yellow",
               }
             );
+            gridCell.on("mousedown", (cell) => {
+              markMode = !markMode;
+              markSetting = !selectedCells.value.includes(gridCell);
+              map.dragging.disable();
+            });
+            gridCell.on("mouseover", (cell) => {
+              if (markMode) {
+                setMarked(gridCell, markSetting);
+              }
+            });
             gridCell.addTo(map);
           });
         })
@@ -248,13 +199,30 @@ function setMarked(polygon, mark) {
 
   // Om polygonen redan är grönljusad, återställ färgen till originalfärgen
   if (mark) {
-    grid.push(polygon);
-    polygon.setStyle({ color: markColor });
+    if (!selectedCells.value.includes(polygon)) {
+      // selectedCells.value.forEach((v) => {
+      //   console.log(toRaw(v)._bounds);
+      // });
+      console.log(toRaw(selectedCells.value[0]));
+      selectedCells.value.push(polygon);
+      polygon.setStyle({ color: markColor });
+    }
   } else {
     // Annars sätt färgen till grönt
-    grid.splice(grid.indexOf(polygon), 1);
-    polygon.setStyle({ color: originalColor });
+    if (selectedCells.value.includes(polygon)) {
+      selectedCells.value.splice(selectedCells.value.indexOf(polygon), 1);
+      polygon.setStyle({ color: originalColor });
+    }
   }
+}
+
+function createMGRSCell(mgrsString) {
+  var rectBounds = inverse(mgrsString);
+  var mgrsCell = L.rectangle([
+    [rectBounds[1], rectBounds[0]],
+    [rectBounds[3], rectBounds[2]],
+  ]);
+  return mgrsCell;
 }
 </script>
 
