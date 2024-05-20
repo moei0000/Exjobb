@@ -4,6 +4,7 @@ import "../../leaflet-mark-polygons";
 import "leaflet-draw";
 import "leaflet/dist/leaflet.css";
 import { onMounted, toRaw } from "vue";
+import axios from "axios";
 
 const selectedCells = defineModel("selectedCells");
 
@@ -25,25 +26,22 @@ onMounted(() => {
   }).addTo(map);
 
   selectedCells.value.forEach((cell) => {
-    console.log(toRaw(cell)._bounds);
+    let cellBounds = toRaw(cell)._bounds;
     let gridCell = L.polygon(
       _invertCoordsArray(
         createPolygonFromPoint(
-          cell.geometry.coordinates[0],
-          cell.geometry.coordinates[1],
-          cell.offset.lat,
-          cell.offset.lon
+          cellBounds._southWest.lng,
+          cellBounds._southWest.lat,
+          cellBounds._northEast.lat - cellBounds._southWest.lat,
+          cellBounds._northEast.lng - cellBounds._southWest.lng
         )
       ),
       {
-        color: "yellow",
+        color: "blue",
       }
     );
     gridCell.addTo(map);
   });
-  // selectedCells.value.forEach((cell, index) => {
-
-  // });
 });
 
 function _invertCoordsArray(array) {
@@ -67,6 +65,28 @@ function createPolygonFromPoint(lon, lat, latOffset, lonOffset) {
     ],
   ];
 }
+
+function donate() {
+  axios
+    .post("http://localhost:3001/donate", {
+      params: {
+        cells: Array.from(selectedCells.value, (cell) => {
+          let size = toRaw(cell).size;
+          return {
+            southWest: toRaw(cell)._bounds._southWest,
+            size: size,
+          };
+        }),
+        cardNumber: 0,
+        cardHolder: 0,
+        cvv: 0,
+        amount: 100,
+      },
+    })
+    .then(function (response) {
+      console.log(response);
+    });
+}
 </script>
 
 <template>
@@ -87,14 +107,8 @@ function createPolygonFromPoint(lon, lat, latOffset, lonOffset) {
 
   <!-- Amount -->
   <q-input v-model="donateAmount" label="Amount" filled />
-
-  <ul v-if="selectedCells.length">
-    <li v-for="cell in selectedCells" :key="cell._bounds">
-      <span>Lat: {{ cell._bounds._southWest.lat }}</span
-      ><br />
-      <span>Lon: {{ cell._bounds._southWest.lng }}</span>
-    </li>
-  </ul>
+  <br />
+  <q-btn color="primary" label="Donate" v-on:click="donate" />
 </template>
 
 <style>

@@ -66,25 +66,6 @@ onMounted(() => {
 
   L.control.markmode().addTo(map);
 
-  // for (let x = 0; x < 10; x++) {
-  //   for (let y = 0; y < 10; y++) {
-  //     let coords = [12.3 + x / 110, y / 100];
-  //     // L.marker([coords[1], coords[0]]).addTo(map);
-  //     var mgrsString = forward(coords, 2);
-  //     var bbox = inverse(mgrsString);
-  //     var newRec = L.rectangle([
-  //       [bbox[1], bbox[0]],
-  //       [bbox[3], bbox[2]],
-  //     ]);
-  //     console.log(mgrsString, bbox, newRec);
-  //     newRec.addTo(map);
-  //   }
-  // }
-  // map.fitBounds([
-  //   [-180, -170],
-  //   [-90, -80],
-  // ]);
-
   map.on("mouseup", () => {
     map.dragging.enable();
     markMode = false;
@@ -159,6 +140,7 @@ onMounted(() => {
 
           // Show intersecting cells
           response.data.createdGrid.forEach((cell, index) => {
+            console.log(cell);
             let gridCell = L.polygon(
               _invertCoordsArray(
                 createPolygonFromPoint(
@@ -178,9 +160,9 @@ onMounted(() => {
               markSetting = !selectedCells.value.includes(gridCell);
               map.dragging.disable();
             });
-            gridCell.on("mouseover", (cell) => {
+            gridCell.on("mouseover", (clickedCell) => {
               if (markMode) {
-                setMarked(gridCell, markSetting);
+                setMarked(gridCell, cell._id.cellSize, markSetting);
               }
             });
             gridCell.addTo(map);
@@ -193,17 +175,17 @@ onMounted(() => {
   });
 });
 
-function setMarked(polygon, mark) {
+function setMarked(polygon, size, mark) {
   const originalColor = "yellow";
   const markColor = "green";
 
   // Om polygonen redan är grönljusad, återställ färgen till originalfärgen
+  polygon.size = size;
   if (mark) {
     if (!selectedCells.value.includes(polygon)) {
       // selectedCells.value.forEach((v) => {
       //   console.log(toRaw(v)._bounds);
       // });
-      console.log(toRaw(selectedCells.value[0]));
       selectedCells.value.push(polygon);
       polygon.setStyle({ color: markColor });
     }
