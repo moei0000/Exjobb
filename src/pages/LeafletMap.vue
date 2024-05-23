@@ -17,18 +17,15 @@ const worldMinArea = defineModel("worldMinSlider");
 
 let map;
 
-// Size of one cell in meters
-const cellSize = 1000;
-// 1 meter in degrees
-const oneMeterInDegree = 1 / 111319.45;
-
-const degreesPerCell = cellSize * oneMeterInDegree;
-
 // Markmode true will set cells to markSetting
 let markMode = false;
 // Wheter to to select or deselct a cell while in markmode
 let markSetting = false;
 
+/**
+ * Inverts the latitude and longitude of an array
+ * @param {*} array
+ */
 function _invertCoordsArray(array) {
   const newArray = [];
   array.forEach((coords) => {
@@ -39,6 +36,14 @@ function _invertCoordsArray(array) {
   return newArray;
 }
 
+/**
+ *
+ * @param {Genertes a leaflet polygon fron a latitude, longitude and offset}
+ * @param {*} lon
+ * @param {*} lat
+ * @param {*} latOffset
+ * @param {*} lonOffset
+ */
 function createPolygonFromPoint(lon, lat, latOffset, lonOffset) {
   return [
     [
@@ -59,12 +64,6 @@ onMounted(() => {
 
   // Create map
   map = L.map("map").setView([58.283, 12.293], 13);
-
-  /** TESTING DELETE LATER */
-  // test watermark
-  L.control.watermark({ position: "bottomleft" }).addTo(map);
-
-  L.control.markmode().addTo(map);
 
   map.on("mouseup", () => {
     map.dragging.enable();
@@ -115,7 +114,6 @@ onMounted(() => {
       const southWestDistance = map.distance(center, southWest);
 
       const radius = Math.max(southWestDistance, northEastDistance);
-      // L.circle(center, { radius }).addTo(map);
 
       polygonArea.value = Math.ceil(
         L.GeometryUtil.geodesicArea(e.layer._latlngs[0]) / 1000000
@@ -175,6 +173,12 @@ onMounted(() => {
   });
 });
 
+/**
+ * set a cell to be marked or not
+ * @param {*} polygon
+ * @param {*} size
+ * @param {*} mark
+ */
 function setMarked(polygon, size, mark) {
   const originalColor = "yellow";
   const markColor = "green";
@@ -183,9 +187,6 @@ function setMarked(polygon, size, mark) {
   polygon.size = size;
   if (mark) {
     if (!selectedCells.value.includes(polygon)) {
-      // selectedCells.value.forEach((v) => {
-      //   console.log(toRaw(v)._bounds);
-      // });
       selectedCells.value.push(polygon);
       polygon.setStyle({ color: markColor });
     }
@@ -198,6 +199,10 @@ function setMarked(polygon, size, mark) {
   }
 }
 
+/**
+ * Generate a leaflet rectangle from a MGRS string
+ * @param {*} mgrsString
+ */
 function createMGRSCell(mgrsString) {
   var rectBounds = inverse(mgrsString);
   var mgrsCell = L.rectangle([

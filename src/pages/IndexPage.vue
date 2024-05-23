@@ -112,7 +112,6 @@
 
 <script>
 import { ref } from "vue";
-import axios from "axios";
 import LeafletMap from "./LeafletMap.vue";
 import MapDescription from "./MapDescription.vue";
 import MapRating from "./MapRating.vue";
